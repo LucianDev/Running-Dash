@@ -1,5 +1,13 @@
 #include "raylib.h"
 
+struct AnimData
+{
+    Rectangle rec;
+    Vector2 pos;
+    int frame;
+    float updateTime;
+    float runningTime;
+};
 
 int main()
 {
@@ -13,46 +21,42 @@ int main()
     // acceleration due to gravity (pixels/sec)/sec
     const int gravity{1'000};
 
-    // hazard variables
-    Texture2D hazard = LoadTexture("textures/12_nebula_spritesheet.png");
-    Rectangle hazardRec{0.0, 0.0, hazard.width/8, hazard.height/8};
-    Vector2 hazPos{windowWidth, windowHeight - hazardRec.height};
+    // neb variables
+    Texture2D neb = LoadTexture("textures/12_nebula_spritesheet.png");
 
-    Rectangle haz2Rec{0.0, 0.0, hazard.width/8, hazard.height/8};
-    Vector2 haz2Pos{windowWidth + 300, windowHeight - hazardRec.height};
+    // AnimData for nebula
+    AnimData nebData
+    { 
+        {0.0, 0.0, neb.width/8, neb.height/8}, // Rectangle rec
+        {windowWidth, windowHeight - neb.height/8}, // Vector2 Pos
+        0, // int frame
+        1.0/12.0,  // float updateTime
+        0 // float runningTime
+    };
+
+    AnimData neb2Data{
+        {0.0, 0.0, neb.width/8, neb.height/8},
+        {windowWidth + 300, windowHeight - neb.height/8},
+        0, 
+        1.0/16.0,
+        0.0
+    };
     
-    // hazard X velocity
+    // neb X velocity
     int hazVel{-200};
 
     // scarfy variables
     Texture2D scarfy = LoadTexture("textures/scarfy.png");
-    Rectangle scarfyRec;
-    scarfyRec.width = scarfy.width/6;
-    scarfyRec.height = scarfy.height;
-    scarfyRec.x = 0;
-    scarfyRec.y = 0;
-    Vector2 scarfyPos;
-    scarfyPos.x = windowWidth/2 - scarfyRec.width/2;
-    scarfyPos.y = windowHeight - scarfyRec.height;
-
-    // hazard animation variables
-    
-    int hazFrame{};
-    const float hazUpdateTime{ 1.0 / 12.0 };
-    float hazRunningTime{};
-
-    int haz2Frame{};
-    const float haz2UpdateTime { 1.0 / 12.0 };
-    float haz2RunningTime{};
-
-
-    // animation frame
-    int frame{};
-
-    // amount of time before update animation frame
-    const float updateTime{ 1.0 / 12.0 };
-
-    float runningtime{};
+    AnimData scarfyData;
+    scarfyData.rec.width = scarfy.width/6;
+    scarfyData.rec.height = scarfy.height;
+    scarfyData.rec.x = 0;
+    scarfyData.rec.y = 0;
+    scarfyData.pos.x = windowWidth/2 - scarfyData.rec.width/2;
+    scarfyData.pos.y = windowHeight - scarfyData.rec.height;
+    scarfyData.frame = 0;
+    scarfyData.updateTime = 1.0/12.0;
+    scarfyData.runningTime = 0.0;
 
     //
     const int jumpVel(-600);
@@ -75,10 +79,8 @@ int main()
         BeginDrawing();
         ClearBackground(WHITE);
 
-        
-
         // ground check
-        if (scarfyPos.y >= windowHeight - scarfyRec.height)
+        if (scarfyData.pos.y >= windowHeight - scarfyData.rec.height)
         {
             velocity = 0;
             isInAir = false;
@@ -96,71 +98,71 @@ int main()
             velocity += jumpVel;
         }
 
-        // update hazard position
-        hazPos.x += hazVel * dT;
+        // update neb position
+        nebData.pos.x += hazVel * dT;
 
-        haz2Pos.x += hazVel * dT;
+        neb2Data.pos.x += hazVel * dT;
 
         // update scarfy position
-        scarfyPos.y += velocity * dT;
+        scarfyData.pos.y += velocity * dT;
 
         // update scarfy animation frame
         if(!isInAir)
         {
             // update running time
-            runningtime += dT;
-            if (runningtime >= updateTime)
+            scarfyData.runningTime += dT;
+            if (scarfyData.runningTime >= scarfyData.updateTime)
             {
-                runningtime = 0.0;
+                scarfyData.runningTime = 0.0;
                 // update aniamtion frame
-                scarfyRec.x = frame * scarfyRec.width;
-                frame++;
-                if (frame > 5)
+                scarfyData.rec.x = scarfyData.frame * scarfyData.rec.width;
+                scarfyData.frame++;
+                if (scarfyData.frame > 5)
                 {
-                    frame = 0;
+                    scarfyData.frame = 0;
                 }
         }
 
-        // update hazard animation frame
-        hazRunningTime += dT;
-        if (hazRunningTime >= hazUpdateTime)
+        // update neb animation frame
+        nebData.runningTime += dT;
+        if (nebData.runningTime >= nebData.updateTime)
         {
-            hazRunningTime = 0.0;
-            hazardRec.x = hazFrame * hazardRec.width;
-            hazFrame++;
-            if (hazFrame > 7)
+            nebData.runningTime = 0.0;
+            nebData.rec.x = nebData.frame * nebData.rec.width;
+            nebData.frame++;
+            if (nebData.frame > 7)
             {
-                hazFrame = 0;
+                nebData.frame = 0;
             }
         }
 
-        // update hazard animation frame
-        haz2RunningTime += dT;
-        if (haz2RunningTime >= haz2UpdateTime)
+        // update neb animation frame
+        neb2Data.runningTime += dT;
+        if (neb2Data.runningTime >= neb2Data.updateTime)
         {
-            haz2RunningTime = 0.0;
-            haz2Rec.x = haz2Frame * haz2Rec.width;
-            haz2Frame++;
-            if (haz2Frame > 7)
+            neb2Data.runningTime = 0.0;
+            neb2Data.rec.x = neb2Data.frame * neb2Data.rec.width;
+            neb2Data.frame++;
+            if (neb2Data.frame > 7)
             {
-                haz2Frame = 0;
+                neb2Data.frame = 0;
             }
         }
         
         }
 
 
-        // Draw hazard
-        DrawTextureRec(hazard, hazardRec, hazPos, WHITE);
-        DrawTextureRec(hazard, haz2Rec, haz2Pos, RED);
+        // Draw neb
+        DrawTextureRec(neb, nebData.rec, nebData.pos, WHITE);
+        DrawTextureRec(neb, neb2Data.rec, neb2Data.pos, RED);
 
         // Draw Scarfy
-        DrawTextureRec(scarfy, scarfyRec, scarfyPos, WHITE);
+        DrawTextureRec(scarfy, scarfyData.rec, scarfyData.pos, WHITE);
 
         // stop drawing
         EndDrawing();
     }
     UnloadTexture(scarfy);
-    UnloadTexture(hazard);
+    UnloadTexture(neb);
     CloseWindow();
 }
